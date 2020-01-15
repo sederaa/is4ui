@@ -1,0 +1,5 @@
+Command to scaffold EF context from database
+
+Run from Data project folder
+
+> dotnet ef dbcontext scaffold "Data Source=.;Initial Catalog=IdentityServer;User Id=sa;Password=Passw0rd" Microsoft.EntityFrameworkCore.SqlServer --context ApplicationDbContext --context-dir . --output-dir Entities --force
