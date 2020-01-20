@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using IS4UI.Backend.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +27,11 @@ namespace IS4UI.Backend.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddGraphQL(SchemaBuilder.New().AddQueryType<ClientQueryType>());
+            services.AddDbContext<ApplicationDbContext>(optionsAction=>{
+                optionsAction.UseSqlServer("Server=.; Database=IdentityServer; User Id=sa; Password=Passw0rd;");
+            });
+            services.AddScoped<IClientsRepo, ClientsRepo>();
+            services.AddGraphQL(SchemaBuilder.New().AddQueryType<RootQueryType>());
             services.AddRazorPages();
         }
 

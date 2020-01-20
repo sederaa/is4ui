@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Backend/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
+                "${workspaceFolder}/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Backend/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
+                "${workspaceFolder}/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/Backend/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
+                "${workspaceFolder}/IS4UI.Backend.Api/IS4UI.Backend.Api.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/Backend/IS4UI.Backend.Api/bin/Debug/netcoreapp3.1/IS4UI.Backend.Api.dll",
+            "program": "${workspaceFolder}/IS4UI.Backend.Api/bin/Debug/netcoreapp3.1/IS4UI.Backend.Api.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Backend/IS4UI.Backend.Api",
+            "cwd": "${workspaceFolder}/IS4UI.Backend.Api",
             "stopAtEntry": false,
             // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {
