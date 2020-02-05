@@ -3,13 +3,12 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ClientClaims
+    public partial class ApiScopeClaim
     {
         public int Id { get; set; }
         public string Type { get; set; }
-        public string Value { get; set; }
-        public int ClientId { get; set; }
+        public int ApiScopeId { get; set; }
 
-        public virtual Clients Client { get; set; }
+        public virtual ApiScope ApiScope { get; set; }
     }
 }

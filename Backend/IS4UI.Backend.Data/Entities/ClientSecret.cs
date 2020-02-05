@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ClientSecrets
+    public partial class ClientSecret
     {
         public int Id { get; set; }
         public string Description { get; set; }
@@ -13,6 +13,6 @@ namespace IS4UI.Backend.Data.Entities
         public DateTime Created { get; set; }
         public int ClientId { get; set; }
 
-        public virtual Clients Client { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class Clients
+    public partial class Client
     {
-        public Clients()
+        public Client()
         {
-            ClientClaims = new HashSet<ClientClaims>();
-            ClientCorsOrigins = new HashSet<ClientCorsOrigins>();
-            ClientGrantTypes = new HashSet<ClientGrantTypes>();
-            ClientIdPrestrictions = new HashSet<ClientIdPrestrictions>();
-            ClientPostLogoutRedirectUris = new HashSet<ClientPostLogoutRedirectUris>();
-            ClientProperties = new HashSet<ClientProperties>();
-            ClientRedirectUris = new HashSet<ClientRedirectUris>();
-            ClientScopes = new HashSet<ClientScopes>();
-            ClientSecrets = new HashSet<ClientSecrets>();
+            ClientClaims = new HashSet<ClientClaim>();
+            ClientCorsOrigins = new HashSet<ClientCorsOrigin>();
+            ClientGrantTypes = new HashSet<ClientGrantType>();
+            ClientIdPrestrictions = new HashSet<ClientIdPrestriction>();
+            ClientPostLogoutRedirectUris = new HashSet<ClientPostLogoutRedirectUri>();
+            ClientProperties = new HashSet<ClientProperty>();
+            ClientRedirectUris = new HashSet<ClientRedirectUri>();
+            ClientScopes = new HashSet<ClientScope>();
+            ClientSecrets = new HashSet<ClientSecret>();
         }
 
         public int Id { get; set; }
@@ -62,14 +62,14 @@ namespace IS4UI.Backend.Data.Entities
         public int DeviceCodeLifetime { get; set; }
         public bool NonEditable { get; set; }
 
-        public virtual ICollection<ClientClaims> ClientClaims { get; set; }
-        public virtual ICollection<ClientCorsOrigins> ClientCorsOrigins { get; set; }
-        public virtual ICollection<ClientGrantTypes> ClientGrantTypes { get; set; }
-        public virtual ICollection<ClientIdPrestrictions> ClientIdPrestrictions { get; set; }
-        public virtual ICollection<ClientPostLogoutRedirectUris> ClientPostLogoutRedirectUris { get; set; }
-        public virtual ICollection<ClientProperties> ClientProperties { get; set; }
-        public virtual ICollection<ClientRedirectUris> ClientRedirectUris { get; set; }
-        public virtual ICollection<ClientScopes> ClientScopes { get; set; }
-        public virtual ICollection<ClientSecrets> ClientSecrets { get; set; }
+        public virtual ICollection<ClientClaim> ClientClaims { get; set; }
+        public virtual ICollection<ClientCorsOrigin> ClientCorsOrigins { get; set; }
+        public virtual ICollection<ClientGrantType> ClientGrantTypes { get; set; }
+        public virtual ICollection<ClientIdPrestriction> ClientIdPrestrictions { get; set; }
+        public virtual ICollection<ClientPostLogoutRedirectUri> ClientPostLogoutRedirectUris { get; set; }
+        public virtual ICollection<ClientProperty> ClientProperties { get; set; }
+        public virtual ICollection<ClientRedirectUri> ClientRedirectUris { get; set; }
+        public virtual ICollection<ClientScope> ClientScopes { get; set; }
+        public virtual ICollection<ClientSecret> ClientSecrets { get; set; }
     }
 }

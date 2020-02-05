@@ -16,31 +16,31 @@ namespace IS4UI.Backend.Data
         {
         }
 
-        public virtual DbSet<ApiClaims> ApiClaims { get; set; }
-        public virtual DbSet<ApiProperties> ApiProperties { get; set; }
-        public virtual DbSet<ApiResources> ApiResources { get; set; }
-        public virtual DbSet<ApiScopeClaims> ApiScopeClaims { get; set; }
-        public virtual DbSet<ApiScopes> ApiScopes { get; set; }
-        public virtual DbSet<ApiSecrets> ApiSecrets { get; set; }
-        public virtual DbSet<ClientClaims> ClientClaims { get; set; }
-        public virtual DbSet<ClientCorsOrigins> ClientCorsOrigins { get; set; }
-        public virtual DbSet<ClientGrantTypes> ClientGrantTypes { get; set; }
-        public virtual DbSet<ClientIdPrestrictions> ClientIdPrestrictions { get; set; }
-        public virtual DbSet<ClientPostLogoutRedirectUris> ClientPostLogoutRedirectUris { get; set; }
-        public virtual DbSet<ClientProperties> ClientProperties { get; set; }
-        public virtual DbSet<ClientRedirectUris> ClientRedirectUris { get; set; }
-        public virtual DbSet<ClientScopes> ClientScopes { get; set; }
-        public virtual DbSet<ClientSecrets> ClientSecrets { get; set; }
-        public virtual DbSet<Clients> Clients { get; set; }
-        public virtual DbSet<DeviceCodes> DeviceCodes { get; set; }
-        public virtual DbSet<IdentityClaims> IdentityClaims { get; set; }
-        public virtual DbSet<IdentityProperties> IdentityProperties { get; set; }
-        public virtual DbSet<IdentityResources> IdentityResources { get; set; }
-        public virtual DbSet<PersistedGrants> PersistedGrants { get; set; }
+        public virtual DbSet<ApiClaim> ApiClaims { get; set; }
+        public virtual DbSet<ApiProperty> ApiProperties { get; set; }
+        public virtual DbSet<ApiResource> ApiResources { get; set; }
+        public virtual DbSet<ApiScope> ApiScopes { get; set; }
+        public virtual DbSet<ApiScopeClaim> ApiScopeClaims { get; set; }
+        public virtual DbSet<ApiSecret> ApiSecrets { get; set; }
+        public virtual DbSet<Client> Clients { get; set; }
+        public virtual DbSet<ClientClaim> ClientClaims { get; set; }
+        public virtual DbSet<ClientCorsOrigin> ClientCorsOrigins { get; set; }
+        public virtual DbSet<ClientGrantType> ClientGrantTypes { get; set; }
+        public virtual DbSet<ClientIdPrestriction> ClientIdPrestrictions { get; set; }
+        public virtual DbSet<ClientPostLogoutRedirectUri> ClientPostLogoutRedirectUris { get; set; }
+        public virtual DbSet<ClientProperty> ClientProperties { get; set; }
+        public virtual DbSet<ClientRedirectUri> ClientRedirectUris { get; set; }
+        public virtual DbSet<ClientScope> ClientScopes { get; set; }
+        public virtual DbSet<ClientSecret> ClientSecrets { get; set; }
+        public virtual DbSet<DeviceCode> DeviceCodes { get; set; }
+        public virtual DbSet<IdentityClaim> IdentityClaims { get; set; }
+        public virtual DbSet<IdentityProperty> IdentityProperties { get; set; }
+        public virtual DbSet<IdentityResource> IdentityResources { get; set; }
+        public virtual DbSet<PersistedGrant> PersistedGrants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ApiClaims>(entity =>
+            modelBuilder.Entity<ApiClaim>(entity =>
             {
                 entity.HasIndex(e => e.ApiResourceId);
 
@@ -53,7 +53,7 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.ApiResourceId);
             });
 
-            modelBuilder.Entity<ApiProperties>(entity =>
+            modelBuilder.Entity<ApiProperty>(entity =>
             {
                 entity.HasIndex(e => e.ApiResourceId);
 
@@ -70,7 +70,7 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.ApiResourceId);
             });
 
-            modelBuilder.Entity<ApiResources>(entity =>
+            modelBuilder.Entity<ApiResource>(entity =>
             {
                 entity.HasIndex(e => e.Name)
                     .IsUnique();
@@ -86,20 +86,7 @@ namespace IS4UI.Backend.Data
                     .HasMaxLength(200);
             });
 
-            modelBuilder.Entity<ApiScopeClaims>(entity =>
-            {
-                entity.HasIndex(e => e.ApiScopeId);
-
-                entity.Property(e => e.Type)
-                    .IsRequired()
-                    .HasMaxLength(200);
-
-                entity.HasOne(d => d.ApiScope)
-                    .WithMany(p => p.ApiScopeClaims)
-                    .HasForeignKey(d => d.ApiScopeId);
-            });
-
-            modelBuilder.Entity<ApiScopes>(entity =>
+            modelBuilder.Entity<ApiScope>(entity =>
             {
                 entity.HasIndex(e => e.ApiResourceId);
 
@@ -119,7 +106,20 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.ApiResourceId);
             });
 
-            modelBuilder.Entity<ApiSecrets>(entity =>
+            modelBuilder.Entity<ApiScopeClaim>(entity =>
+            {
+                entity.HasIndex(e => e.ApiScopeId);
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.HasOne(d => d.ApiScope)
+                    .WithMany(p => p.ApiScopeClaims)
+                    .HasForeignKey(d => d.ApiScopeId);
+            });
+
+            modelBuilder.Entity<ApiSecret>(entity =>
             {
                 entity.HasIndex(e => e.ApiResourceId);
 
@@ -138,140 +138,7 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.ApiResourceId);
             });
 
-            modelBuilder.Entity<ClientClaims>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Type)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
-                entity.Property(e => e.Value)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientClaims)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientCorsOrigins>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Origin)
-                    .IsRequired()
-                    .HasMaxLength(150);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientCorsOrigins)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientGrantTypes>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.GrantType)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientGrantTypes)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientIdPrestrictions>(entity =>
-            {
-                entity.ToTable("ClientIdPRestrictions");
-
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Provider)
-                    .IsRequired()
-                    .HasMaxLength(200);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientIdPrestrictions)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientPostLogoutRedirectUris>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.PostLogoutRedirectUri)
-                    .IsRequired()
-                    .HasMaxLength(2000);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientPostLogoutRedirectUris)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientProperties>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Key)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
-                entity.Property(e => e.Value)
-                    .IsRequired()
-                    .HasMaxLength(2000);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientProperties)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientRedirectUris>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.RedirectUri)
-                    .IsRequired()
-                    .HasMaxLength(2000);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientRedirectUris)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientScopes>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Scope)
-                    .IsRequired()
-                    .HasMaxLength(200);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientScopes)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<ClientSecrets>(entity =>
-            {
-                entity.HasIndex(e => e.ClientId);
-
-                entity.Property(e => e.Description).HasMaxLength(2000);
-
-                entity.Property(e => e.Type)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
-                entity.Property(e => e.Value)
-                    .IsRequired()
-                    .HasMaxLength(4000);
-
-                entity.HasOne(d => d.Client)
-                    .WithMany(p => p.ClientSecrets)
-                    .HasForeignKey(d => d.ClientId);
-            });
-
-            modelBuilder.Entity<Clients>(entity =>
+            modelBuilder.Entity<Client>(entity =>
             {
                 entity.HasIndex(e => e.ClientId)
                     .IsUnique();
@@ -305,11 +172,144 @@ namespace IS4UI.Backend.Data
                 entity.Property(e => e.UserCodeType).HasMaxLength(100);
             });
 
-            modelBuilder.Entity<DeviceCodes>(entity =>
+            modelBuilder.Entity<ClientClaim>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientClaims)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientCorsOrigin>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Origin)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientCorsOrigins)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientGrantType>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.GrantType)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientGrantTypes)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientIdPrestriction>(entity =>
+            {
+                entity.ToTable("ClientIdPRestrictions");
+
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Provider)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientIdPrestrictions)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientPostLogoutRedirectUri>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.PostLogoutRedirectUri)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientPostLogoutRedirectUris)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientProperty>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Key)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientProperties)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientRedirectUri>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.RedirectUri)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientRedirectUris)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientScope>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Scope)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientScopes)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<ClientSecret>(entity =>
+            {
+                entity.HasIndex(e => e.ClientId);
+
+                entity.Property(e => e.Description).HasMaxLength(2000);
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasMaxLength(4000);
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.ClientSecrets)
+                    .HasForeignKey(d => d.ClientId);
+            });
+
+            modelBuilder.Entity<DeviceCode>(entity =>
             {
                 entity.HasKey(e => e.UserCode);
 
-                entity.HasIndex(e => e.DeviceCode)
+                entity.HasIndex(e => e.DeviceCode1)
                     .IsUnique();
 
                 entity.HasIndex(e => e.Expiration);
@@ -322,14 +322,15 @@ namespace IS4UI.Backend.Data
 
                 entity.Property(e => e.Data).IsRequired();
 
-                entity.Property(e => e.DeviceCode)
+                entity.Property(e => e.DeviceCode1)
                     .IsRequired()
+                    .HasColumnName("DeviceCode")
                     .HasMaxLength(200);
 
                 entity.Property(e => e.SubjectId).HasMaxLength(200);
             });
 
-            modelBuilder.Entity<IdentityClaims>(entity =>
+            modelBuilder.Entity<IdentityClaim>(entity =>
             {
                 entity.HasIndex(e => e.IdentityResourceId);
 
@@ -342,7 +343,7 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.IdentityResourceId);
             });
 
-            modelBuilder.Entity<IdentityProperties>(entity =>
+            modelBuilder.Entity<IdentityProperty>(entity =>
             {
                 entity.HasIndex(e => e.IdentityResourceId);
 
@@ -359,7 +360,7 @@ namespace IS4UI.Backend.Data
                     .HasForeignKey(d => d.IdentityResourceId);
             });
 
-            modelBuilder.Entity<IdentityResources>(entity =>
+            modelBuilder.Entity<IdentityResource>(entity =>
             {
                 entity.HasIndex(e => e.Name)
                     .IsUnique();
@@ -373,7 +374,7 @@ namespace IS4UI.Backend.Data
                     .HasMaxLength(200);
             });
 
-            modelBuilder.Entity<PersistedGrants>(entity =>
+            modelBuilder.Entity<PersistedGrant>(entity =>
             {
                 entity.HasKey(e => e.Key);
 

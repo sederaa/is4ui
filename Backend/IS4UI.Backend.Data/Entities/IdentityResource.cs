@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class IdentityResources
+    public partial class IdentityResource
     {
-        public IdentityResources()
+        public IdentityResource()
         {
-            IdentityClaims = new HashSet<IdentityClaims>();
-            IdentityProperties = new HashSet<IdentityProperties>();
+            IdentityClaims = new HashSet<IdentityClaim>();
+            IdentityProperties = new HashSet<IdentityProperty>();
         }
 
         public int Id { get; set; }
@@ -23,7 +23,7 @@ namespace IS4UI.Backend.Data.Entities
         public DateTime? Updated { get; set; }
         public bool NonEditable { get; set; }
 
-        public virtual ICollection<IdentityClaims> IdentityClaims { get; set; }
-        public virtual ICollection<IdentityProperties> IdentityProperties { get; set; }
+        public virtual ICollection<IdentityClaim> IdentityClaims { get; set; }
+        public virtual ICollection<IdentityProperty> IdentityProperties { get; set; }
     }
 }

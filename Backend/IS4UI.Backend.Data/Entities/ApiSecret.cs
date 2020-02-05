@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ApiSecrets
+    public partial class ApiSecret
     {
         public int Id { get; set; }
         public string Description { get; set; }
@@ -13,6 +13,6 @@ namespace IS4UI.Backend.Data.Entities
         public DateTime Created { get; set; }
         public int ApiResourceId { get; set; }
 
-        public virtual ApiResources ApiResource { get; set; }
+        public virtual ApiResource ApiResource { get; set; }
     }
 }

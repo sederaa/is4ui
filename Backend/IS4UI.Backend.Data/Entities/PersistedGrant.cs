@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class PersistedGrants
+    public partial class PersistedGrant
     {
         public string Key { get; set; }
         public string Type { get; set; }

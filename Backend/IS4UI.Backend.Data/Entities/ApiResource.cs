@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ApiResources
+    public partial class ApiResource
     {
-        public ApiResources()
+        public ApiResource()
         {
-            ApiClaims = new HashSet<ApiClaims>();
-            ApiProperties = new HashSet<ApiProperties>();
-            ApiScopes = new HashSet<ApiScopes>();
-            ApiSecrets = new HashSet<ApiSecrets>();
+            ApiClaims = new HashSet<ApiClaim>();
+            ApiProperties = new HashSet<ApiProperty>();
+            ApiScopes = new HashSet<ApiScope>();
+            ApiSecrets = new HashSet<ApiSecret>();
         }
 
         public int Id { get; set; }
@@ -24,9 +24,9 @@ namespace IS4UI.Backend.Data.Entities
         public DateTime? LastAccessed { get; set; }
         public bool NonEditable { get; set; }
 
-        public virtual ICollection<ApiClaims> ApiClaims { get; set; }
-        public virtual ICollection<ApiProperties> ApiProperties { get; set; }
-        public virtual ICollection<ApiScopes> ApiScopes { get; set; }
-        public virtual ICollection<ApiSecrets> ApiSecrets { get; set; }
+        public virtual ICollection<ApiClaim> ApiClaims { get; set; }
+        public virtual ICollection<ApiProperty> ApiProperties { get; set; }
+        public virtual ICollection<ApiScope> ApiScopes { get; set; }
+        public virtual ICollection<ApiSecret> ApiSecrets { get; set; }
     }
 }

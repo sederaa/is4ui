@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ClientRedirectUris
+    public partial class ClientScope
     {
         public int Id { get; set; }
-        public string RedirectUri { get; set; }
+        public string Scope { get; set; }
         public int ClientId { get; set; }
 
-        public virtual Clients Client { get; set; }
+        public virtual Client Client { get; set; }
     }
 }

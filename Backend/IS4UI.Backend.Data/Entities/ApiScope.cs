@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace IS4UI.Backend.Data.Entities
 {
-    public partial class ApiScopes
+    public partial class ApiScope
     {
-        public ApiScopes()
+        public ApiScope()
         {
-            ApiScopeClaims = new HashSet<ApiScopeClaims>();
+            ApiScopeClaims = new HashSet<ApiScopeClaim>();
         }
 
         public int Id { get; set; }
@@ -19,7 +19,7 @@ namespace IS4UI.Backend.Data.Entities
         public bool ShowInDiscoveryDocument { get; set; }
         public int ApiResourceId { get; set; }
 
-        public virtual ApiResources ApiResource { get; set; }
-        public virtual ICollection<ApiScopeClaims> ApiScopeClaims { get; set; }
+        public virtual ApiResource ApiResource { get; set; }
+        public virtual ICollection<ApiScopeClaim> ApiScopeClaims { get; set; }
     }
 }

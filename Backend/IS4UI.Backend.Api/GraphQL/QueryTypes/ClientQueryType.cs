@@ -13,7 +13,7 @@ public class RootQueryType : ObjectType
     }
 }
 
-public class ClientType : ObjectType<Clients>
+public class ClientType : ObjectType<Client>
 {
 
 }
@@ -27,7 +27,7 @@ public class ClientsResolvers
         this.db = db;
     }
 
-    public List<Clients> GetClients()
+    public List<Client> GetClients()
     {
         return db.Clients.ToList();
     }
