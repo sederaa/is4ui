@@ -30,9 +30,7 @@ namespace IS4UI.Backend.Api
             services.AddDbContext<ApplicationDbContext>(optionsAction=>{
                 optionsAction.UseSqlServer("Server=.; Database=IdentityServer; User Id=sa; Password=Passw0rd;");
             });
-            services.AddScoped<IClientsRepo, ClientsRepo>();
             services.AddGraphQL(SchemaBuilder.New().AddQueryType<RootQueryType>());
-            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -50,18 +48,14 @@ namespace IS4UI.Backend.Api
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
 
-            app.UseRouting();
-
-            app.UseAuthorization();
+            //app.UseRouting();
 
             app.UseGraphQL("/graphql");
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapRazorPages();
-            });
+            // app.UseEndpoints(endpoints =>
+            // {
+            // });
         }
     }
 }

@@ -20,32 +20,15 @@ public class ClientType : ObjectType<Clients>
 
 public class ClientsResolvers
 {
-    private readonly IClientsRepo repo;
     private readonly ApplicationDbContext db;
 
-    public ClientsResolvers(IClientsRepo repo, ApplicationDbContext db)
+    public ClientsResolvers(ApplicationDbContext db)
     {
-        this.repo = repo;
         this.db = db;
     }
 
     public List<Clients> GetClients()
     {
         return db.Clients.ToList();
-        //return repo.GetClients();
-    }
-}
-
-public interface IClientsRepo
-{
-    List<Clients> GetClients();
-}
-public class ClientsRepo : IClientsRepo
-{
-    public List<Clients> GetClients()
-    {
-        return new List<Clients>{
-            new Clients{ClientId="a"}
-        };
     }
 }
