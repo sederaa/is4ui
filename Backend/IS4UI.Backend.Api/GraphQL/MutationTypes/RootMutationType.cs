@@ -18,6 +18,11 @@ public class RootMutationType : ObjectType<Mutation>
         descriptor.Field(m => m.UpdateClient(default, default))
             .Type<ClientType>()
             .Argument("input", a => a.Type<UpdateClientInputType>());
+
+        descriptor.Field(m => m.DeleteClient(default, default))
+            .Type<ClientType>()
+            .Argument("input", a => a.Type<DeleteClientInputType>());
+
     }
 }
 
@@ -71,6 +76,14 @@ public class Mutation
         await db.SaveChangesAsync();
         return client;
     }
+
+        public async Task<Client> DeleteClient([Service] ApplicationDbContext db, DeleteClientInput input)
+    {
+        var client = await db.FindAsync<Client>(input.Id);
+        db.Remove(client);
+        await db.SaveChangesAsync();
+        return client;
+    }
 }
 
 public class CreateClientInputType : InputObjectType<CreateClientInput>
@@ -93,11 +106,25 @@ public class UpdateClientInputType : InputObjectType<UpdateClientInput>
     {
         base.Configure(descriptor);
 
+        descriptor.Field(x => x.Id)
+            .Type<NonNullType<IntType>>();
+
         descriptor.Field(x => x.ClientId)
             .Type<NonNullType<StringType>>();
 
         descriptor.Field(x => x.ClientName)
             .Type<NonNullType<StringType>>();
+    }
+}
+
+public class DeleteClientInputType : InputObjectType<DeleteClientInput>
+{
+    protected override void Configure(IInputObjectTypeDescriptor<DeleteClientInput> descriptor)
+    {
+        base.Configure(descriptor);
+
+        descriptor.Field(x => x.Id)
+            .Type<NonNullType<IntType>>();
     }
 }
 
@@ -195,4 +222,9 @@ public class UpdateClientInput
     // public int DeviceCodeLifetime { get; set; }
     // public bool NonEditable { get; set; }
 
+}
+
+public class DeleteClientInput
+{
+    public int Id { get; set; }
 }
