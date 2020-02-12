@@ -3,6 +3,9 @@ using System.Linq;
 using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
+using HotChocolate.Resolvers;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 public class ClientResolvers
 {
@@ -11,9 +14,10 @@ public class ClientResolvers
         return db.Clients.ToList();
     }
 
-    public Client GetClient([Service] ApplicationDbContext db, int id)
+    public async Task<Client> GetClient([Service] ApplicationDbContext db, IResolverContext context, int id)
     {
-        return db.Clients.SingleOrDefault(c => c.Id == id);
+        var dataLoader = context.BatchDataLoader<int, Client>(nameof(GetClient), async clientIds => await db.Clients.Where(c => clientIds.Contains(c.Id)).ToDictionaryAsync(x => x.Id, x => x));
+        return await dataLoader.LoadAsync(id, context.RequestAborted);
     }
 
 }

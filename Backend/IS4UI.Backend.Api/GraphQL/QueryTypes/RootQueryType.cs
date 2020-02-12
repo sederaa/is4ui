@@ -6,7 +6,7 @@ public class RootQueryType : ObjectType
     {
         descriptor.Field<ClientResolvers>(x => x.GetClients(default))
             .Type<ListType<NonNullType<ClientType>>>();
-        descriptor.Field<ClientResolvers>(x => x.GetClient(default, default))
+        descriptor.Field<ClientResolvers>(x => x.GetClient(default,default, default))
             .Type<ClientType>()
             .Argument("id", a => a.Type<IntType>());
     }
