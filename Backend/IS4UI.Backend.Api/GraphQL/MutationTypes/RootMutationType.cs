@@ -77,7 +77,7 @@ public class Mutation
         return client;
     }
 
-        public async Task<Client> DeleteClient([Service] ApplicationDbContext db, DeleteClientInput input)
+    public async Task<Client> DeleteClient([Service] ApplicationDbContext db, DeleteClientInput input)
     {
         var client = await db.FindAsync<Client>(input.Id);
         db.Remove(client);
@@ -107,7 +107,7 @@ public class UpdateClientInputType : InputObjectType<UpdateClientInput>
         base.Configure(descriptor);
 
         descriptor.Field(x => x.Id)
-            .Type<NonNullType<IntType>>();
+            .Type<NonNullType<IdType>>();
 
         descriptor.Field(x => x.ClientId)
             .Type<NonNullType<StringType>>();
@@ -124,7 +124,7 @@ public class DeleteClientInputType : InputObjectType<DeleteClientInput>
         base.Configure(descriptor);
 
         descriptor.Field(x => x.Id)
-            .Type<NonNullType<IntType>>();
+            .Type<NonNullType<IdType>>();
     }
 }
 
