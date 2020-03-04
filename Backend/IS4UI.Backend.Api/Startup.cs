@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using FluentValidation;
 
 namespace IS4UI.Backend.Api
 {
@@ -31,12 +32,17 @@ namespace IS4UI.Backend.Api
                 optionsAction.UseSqlServer("Server=.; Database=IdentityServer; User Id=sa; Password=Passw0rd;");
             });
             
+            //TODO: scan for all IValidators and register
+            services.AddTransient<IValidator<CreateClientInput>, CreateClientInputValidator>();
+
             services
                 .AddDataLoaderRegistry()
                 .AddGraphQL(SchemaBuilder.New()
-                .AddQueryType<RootQueryType>()
-                .AddMutationType<RootMutationType>()
-                .Create());
+                    .AddQueryType<RootQueryType>()
+                    .AddMutationType<RootMutationType>()
+                    .Use<ValidateInputMiddleware>()
+                    .Create()
+                );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
