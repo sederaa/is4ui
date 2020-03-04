@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
+using FluentValidation.Results;
 using HotChocolate;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.DependencyInjection;
 
 public class ValidateInputMiddleware
 {
@@ -55,18 +51,28 @@ public class ValidateInputMiddleware
             await _next(context);
         }
 
-        IEnumerable<FluentValidation.Results.ValidationFailure> ValidateObject(object argument)
+        IEnumerable<ValidationFailure> ValidateObject(object argument)
         {
             try
             {
                 var actualObjectType = argument.GetType();
                 var validatorGenericType = typeof(IValidator<>);
                 var validatorType = validatorGenericType.MakeGenericType(actualObjectType);
-                var validator = context.Service(validatorType); 
-                if (validator == null) return null;
+                object validator = null;
+                try
+                {
+                    validator = context.Service(validatorType);
+                }
+                catch (InvalidOperationException)
+                {
+                    // No service found
+                    return Enumerable.Empty<ValidationFailure>();
+                }
+
+                if (validator == null) return Enumerable.Empty<ValidationFailure>();
 
                 var validateMethodInfo = validatorType.GetMethod(nameof(IValidator.Validate), new[] { actualObjectType });
-                var results = validateMethodInfo.Invoke(validator, new[] { argument }) as FluentValidation.Results.ValidationResult;
+                var results = validateMethodInfo.Invoke(validator, new[] { argument }) as ValidationResult;
 
                 return results.Errors.AsEnumerable();
             }
