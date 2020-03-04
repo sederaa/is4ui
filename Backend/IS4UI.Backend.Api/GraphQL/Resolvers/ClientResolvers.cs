@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 public class ClientResolvers
 {
-    public List<Client> GetClients([Service] ApplicationDbContext db)
+    public IQueryable<Client> GetClients([Service] ApplicationDbContext db)
     {
-        return db.Clients.ToList();
+        return db.Clients;
     }
 
     public async Task<Client> GetClient([Service] ApplicationDbContext db, IResolverContext context, int id)
