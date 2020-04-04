@@ -23,7 +23,7 @@ namespace IS4UI.Backend.Api.Pages
             _logger = logger;
         }
 
-        public void OnGet()
+        public void OnGetQueries()
         {
             var codeBuilder = new StringBuilder();
             var dataAssembly = typeof(Client).Assembly;

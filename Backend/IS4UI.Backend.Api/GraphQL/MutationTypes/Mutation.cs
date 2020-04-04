@@ -4,7 +4,7 @@ using HotChocolate;
 using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 
-public class Mutation
+public partial class Mutation
 {
     public async Task<Client> CreateClient([Service] ApplicationDbContext db, CreateClientInput input)
     {
