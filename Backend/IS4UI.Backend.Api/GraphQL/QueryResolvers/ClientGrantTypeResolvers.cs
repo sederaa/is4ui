@@ -4,12 +4,14 @@ using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
 
-public class ClientGrantTypeResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public List<ClientGrantType> GetClientGrantTypesByParentId([Service] ApplicationDbContext db, [Parent]Client client)
-   {
-       return db.ClientGrantTypes.Where(x => x.ClientId == client.Id).ToList();
-   }
+    public class ClientGrantTypeResolvers
+    {
+        public List<ClientGrantType> GetClientGrantTypesByParentId([Service] ApplicationDbContext db, [Parent]Client client)
+        {
+            return db.ClientGrantTypes.Where(x => x.ClientId == client.Id).ToList();
+        }
+    }
 }
-
 

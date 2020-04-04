@@ -4,12 +4,14 @@ using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
 
-public class ClientRedirectUriResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public List<ClientRedirectUri> GetClientRedirectUrisByParentId([Service] ApplicationDbContext db, [Parent]Client client)
-   {
-       return db.ClientRedirectUris.Where(x => x.ClientId == client.Id).ToList();
-   }
+    public class ClientRedirectUriResolvers
+    {
+        public List<ClientRedirectUri> GetClientRedirectUrisByParentId([Service] ApplicationDbContext db, [Parent]Client client)
+        {
+            return db.ClientRedirectUris.Where(x => x.ClientId == client.Id).ToList();
+        }
+    }
 }
-
 

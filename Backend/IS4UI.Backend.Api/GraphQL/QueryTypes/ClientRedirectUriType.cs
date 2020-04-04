@@ -1,14 +1,16 @@
 using IS4UI.Backend.Data.Entities;
 using HotChocolate.Types;
 
-public class ClientRedirectUriType : ObjectType<ClientRedirectUri>
+namespace IS4UI.Backend.Api.GraphQL.QueryTypes
 {
-   protected override void Configure(IObjectTypeDescriptor<ClientRedirectUri> descriptor)
-   {
-      descriptor.Field(x => x.Id)
-                .Type<NonNullType<IdType>>();
+    public class ClientRedirectUriType : ObjectType<ClientRedirectUri>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ClientRedirectUri> descriptor)
+        {
+            descriptor.Field(x => x.Id)
+                      .Type<NonNullType<IdType>>();
 
-   }
+        }
+    }
 }
-
 

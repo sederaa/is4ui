@@ -6,18 +6,20 @@ using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-public class DeviceCodeResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public IQueryable<DeviceCode> GetDeviceCodes([Service] ApplicationDbContext db)
-   {
-      return db.DeviceCodes;
-   }
+    public class DeviceCodeResolvers
+    {
+        public IQueryable<DeviceCode> GetDeviceCodes([Service] ApplicationDbContext db)
+        {
+            return db.DeviceCodes;
+        }
 
-   public async Task<DeviceCode> GetDeviceCode([Service] ApplicationDbContext db, IResolverContext context, string userCode)
-   {
-       var dataLoader = context.BatchDataLoader<string, DeviceCode>(nameof(GetDeviceCode), async userCodes => await db.DeviceCodes.Where(c => userCodes.Contains(c.UserCode)).ToDictionaryAsync(x => x.UserCode, x => x));
-       return await dataLoader.LoadAsync(userCode, context.RequestAborted);
-   }
+        public async Task<DeviceCode> GetDeviceCode([Service] ApplicationDbContext db, IResolverContext context, string userCode)
+        {
+            var dataLoader = context.BatchDataLoader<string, DeviceCode>(nameof(GetDeviceCode), async userCodes => await db.DeviceCodes.Where(c => userCodes.Contains(c.UserCode)).ToDictionaryAsync(x => x.UserCode, x => x));
+            return await dataLoader.LoadAsync(userCode, context.RequestAborted);
+        }
+    }
 }
-
 

@@ -4,12 +4,14 @@ using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
 
-public class ClientScopeResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public List<ClientScope> GetClientScopesByParentId([Service] ApplicationDbContext db, [Parent]Client client)
-   {
-       return db.ClientScopes.Where(x => x.ClientId == client.Id).ToList();
-   }
+    public class ClientScopeResolvers
+    {
+        public List<ClientScope> GetClientScopesByParentId([Service] ApplicationDbContext db, [Parent]Client client)
+        {
+            return db.ClientScopes.Where(x => x.ClientId == client.Id).ToList();
+        }
+    }
 }
-
 

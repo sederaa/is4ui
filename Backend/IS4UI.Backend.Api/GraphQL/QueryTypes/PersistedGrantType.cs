@@ -1,14 +1,16 @@
 using IS4UI.Backend.Data.Entities;
 using HotChocolate.Types;
 
-public class PersistedGrantType : ObjectType<PersistedGrant>
+namespace IS4UI.Backend.Api.GraphQL.QueryTypes
 {
-   protected override void Configure(IObjectTypeDescriptor<PersistedGrant> descriptor)
-   {
-      descriptor.Field(x => x.Key)
-                .Type<NonNullType<IdType>>();
+    public class PersistedGrantType : ObjectType<PersistedGrant>
+    {
+        protected override void Configure(IObjectTypeDescriptor<PersistedGrant> descriptor)
+        {
+            descriptor.Field(x => x.Key)
+                      .Type<NonNullType<IdType>>();
 
-   }
+        }
+    }
 }
-
 

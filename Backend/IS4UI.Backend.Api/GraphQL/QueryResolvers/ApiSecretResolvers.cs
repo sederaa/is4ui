@@ -4,12 +4,14 @@ using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
 
-public class ApiSecretResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public List<ApiSecret> GetApiSecretsByParentId([Service] ApplicationDbContext db, [Parent]ApiResource apiResource)
-   {
-       return db.ApiSecrets.Where(x => x.ApiResourceId == apiResource.Id).ToList();
-   }
+    public class ApiSecretResolvers
+    {
+        public List<ApiSecret> GetApiSecretsByParentId([Service] ApplicationDbContext db, [Parent]ApiResource apiResource)
+        {
+            return db.ApiSecrets.Where(x => x.ApiResourceId == apiResource.Id).ToList();
+        }
+    }
 }
-
 

@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using FluentValidation;
+using IS4UI.Backend.Api.GraphQL.QueryTypes;
 
 namespace IS4UI.Backend.Api
 {

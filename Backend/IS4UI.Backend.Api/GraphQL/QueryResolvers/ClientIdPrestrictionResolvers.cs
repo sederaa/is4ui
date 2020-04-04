@@ -4,12 +4,14 @@ using IS4UI.Backend.Data;
 using IS4UI.Backend.Data.Entities;
 using HotChocolate;
 
-public class ClientIdPrestrictionResolvers
+namespace IS4UI.Backend.Api.GraphQL.QueryResolvers
 {
-   public List<ClientIdPrestriction> GetClientIdPrestrictionsByParentId([Service] ApplicationDbContext db, [Parent]Client client)
-   {
-       return db.ClientIdPrestrictions.Where(x => x.ClientId == client.Id).ToList();
-   }
+    public class ClientIdPrestrictionResolvers
+    {
+        public List<ClientIdPrestriction> GetClientIdPrestrictionsByParentId([Service] ApplicationDbContext db, [Parent]Client client)
+        {
+            return db.ClientIdPrestrictions.Where(x => x.ClientId == client.Id).ToList();
+        }
+    }
 }
-
 
