@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using FluentValidation;
 
 public class CreateClientInput
 {
@@ -49,26 +49,8 @@ public class CreateClientInput
     // public int DeviceCodeLifetime { get; set; }
     // public bool NonEditable { get; set; }
 
+    public List<CreateClientSecretInput> ClientSecrets { get; set; }
 }
 
-public enum ErrorCodes
-{
-    ClientIdEmpty,
-    ClientIdTooLong,
-    ClientNameEmpty,
-    ClientNameTooLong,
 
-}
 
-public class CreateClientInputValidator : AbstractValidator<CreateClientInput>
-{
-    public CreateClientInputValidator()
-    {
-        RuleFor(m => m.ClientId)
-            .NotEmpty().WithErrorCode(ErrorCodes.ClientIdEmpty.ToString())
-            .Length(1, 10).WithErrorCode(ErrorCodes.ClientIdTooLong.ToString());
-        RuleFor(m => m.ClientName)
-            .NotEmpty().WithErrorCode(ErrorCodes.ClientNameEmpty.ToString())
-            .Length(1, 10).WithErrorCode(ErrorCodes.ClientNameTooLong.ToString()); ;
-    }
-}

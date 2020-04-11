@@ -13,5 +13,10 @@ public class CreateClientInputType : InputObjectType<CreateClientInput>
         descriptor.Field(x => x.ClientName)
             .Type<NonNullType<StringType>>()
             ;
+
+        descriptor.Field(x => x.ClientSecrets)
+            .Type<NonNullType<ListType<ClientSecretInputType>>>()
+            ;
     }
+
 }

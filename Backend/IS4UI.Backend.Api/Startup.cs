@@ -35,6 +35,7 @@ namespace IS4UI.Backend.Api
             
             //TODO: scan for all IValidators and register
             services.AddTransient<IValidator<CreateClientInput>, CreateClientInputValidator>();
+            services.AddTransient<IValidator<CreateClientSecretInput>, CreateClientSecretInputValidator>();
 
             services
                 .AddDataLoaderRegistry()
@@ -51,6 +52,8 @@ namespace IS4UI.Backend.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            ValidatorOptions.CascadeMode = CascadeMode.StopOnFirstFailure;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

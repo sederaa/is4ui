@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
 using IS4UI.Backend.Data;
@@ -41,7 +42,17 @@ public partial class Mutation
             NonEditable = false
         };
 
+        client.ClientSecrets = input.ClientSecrets.Select(cs => new ClientSecret()
+        {
+            Created = DateTime.Now,
+            Description = cs.Description,
+            Expiration = cs.Expiration,
+            Type = cs.Type,
+            Value = cs.Value
+        }).ToList();
+
         db.Clients.Add(client);
+
         await db.SaveChangesAsync();
         return client;
     }
