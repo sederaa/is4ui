@@ -23,6 +23,110 @@ namespace IS4UI.Backend.Api.Pages
             _logger = logger;
         }
 
+// public enum EntityDescriptorTypes{
+//     Regular,
+//     Pk,
+//     ParentId,
+//     ParentRef,
+//     Created,
+//     Updated
+// }
+
+// public class EntityDescriptor{
+//     public string Name { get; set; }
+// public string TypeName { get; set; }
+// public string IgnoredReason { get; set; }
+// public bool MyProperty { get; set; }
+// }
+
+        public void OnGetMutations()
+        {
+            var codeBuilder = new StringBuilder();
+            var dataAssembly = typeof(Client).Assembly;
+            var allTypes = dataAssembly.GetTypes();
+            var entityTypes = allTypes.Where(t => t.Namespace == "IS4UI.Backend.Data.Entities");
+            var entityTypesFullNames = entityTypes.Select(t => t.FullName).ToArray();
+
+            codeBuilder.AppendLine("////////////// INPUTS //////////////");
+            codeBuilder.AppendLine("// Add to Mutation\\Inputs folder.\n");
+
+            foreach (var entityType in entityTypes)
+            {
+                // Build properties code
+                var ignoredBuilder = new StringBuilder();
+                var propertiesBuilder = new StringBuilder();
+
+                var properties = entityType.GetProperties().OrderBy(p => p.Name);
+
+                var parentNames = properties.Where(p => p.PropertyType.IsClass).Select(p => p.Name);
+
+                foreach (var property in properties)
+                {
+                    var type = property.PropertyType;
+                    if (parentNames.Select(n => n + "Id").Contains(property.Name))
+                    {
+                        // Ignore as it's an FK to parent
+                        ignoredBuilder.AppendLine($"   // {type.Name} {property.Name} - FK to parent");
+                    }
+                    else if (property.Name == "Id")
+                    {
+                        // Ignore PK as it will be handled by insertion
+                        ignoredBuilder.AppendLine($"   // {type.Name} {property.Name} - PK");
+                    }
+                    else if ((property.Name == "Created" || property.Name == "Updated") && (type == typeof(DateTime) || type == typeof(DateTime?)))
+                    {
+                        // Ignore Created property. This will be auto-filled in mutation service method
+                        ignoredBuilder.AppendLine($"   // {type.Name} {property.Name} - created or updated property");
+                    }
+                    else if (type.IsClass && type != typeof(string))
+                    {
+                        // Ignore these as they are references back to the parent entity. They will be handled by the parent class and the corresponding collections.
+                        ignoredBuilder.AppendLine($"   // {type.Name} {property.Name} - reference to parent");
+                    }
+                    else if (type.Name == "Nullable`1")
+                    {
+                        var genericType = type?.GetTypeInfo()?.GenericTypeArguments.FirstOrDefault();
+                        if (genericType != null)
+                            propertiesBuilder.AppendLine($"   public {genericType.Name}? {property.Name} {{ get; set; }}");
+                        else
+                            propertiesBuilder.AppendLine($"   public ???{type.Name}??? {property.Name} {{ get; set; }}");
+                    }
+                    else if (type.GetInterface(nameof(IEnumerable)) != null && type != typeof(string))
+                    {
+                        var genericType = type?.GetTypeInfo()?.GenericTypeArguments.FirstOrDefault();
+                        if (genericType != null)
+                            propertiesBuilder.AppendLine($"   public List<{genericType.Name}> {property.Name} {{ get; set; }}");
+                        else
+                            propertiesBuilder.AppendLine($"   public ?{type.Name}? {property.Name} {{ get; set; }}");
+                    }
+                    else
+                    {
+                        propertiesBuilder.AppendLine($"   public {type.Name} {property.Name} {{ get; set; }}");
+                    }
+                }
+
+                if (ignoredBuilder.Length > 0)
+                {
+                    propertiesBuilder.AppendLine($"   // Ignored: ");
+                    propertiesBuilder.Append(ignoredBuilder.ToString());
+                }
+
+                // Create
+                codeBuilder.AppendLine($"public class Create{entityType.Name}Input");
+                codeBuilder.AppendLine("{");
+                codeBuilder.Append(propertiesBuilder.ToString());
+                codeBuilder.AppendLine("}\n");
+
+                // Update
+                codeBuilder.AppendLine($"public class Update{entityType.Name}Input");
+                codeBuilder.AppendLine("{");
+                codeBuilder.Append(propertiesBuilder.ToString());
+                codeBuilder.AppendLine("}\n");
+            }
+
+            Code = codeBuilder.ToString();
+        }
+
         public void OnGetQueries()
         {
             var codeBuilder = new StringBuilder();
