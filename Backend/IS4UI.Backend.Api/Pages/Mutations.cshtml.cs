@@ -10,6 +10,7 @@ using System.Text;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace IS4UI.Backend.Api.Pages
 {
@@ -46,6 +47,9 @@ namespace IS4UI.Backend.Api.Pages
         {
             public string Name { get; set; }
             public string TypeName { get; set; }
+            public string GenericTypeName { get; set; }
+            public bool IsRequired { get; set; }
+            public int StringLength { get; set; }
             public PropertyDescriptorClassifications Classification { get; set; }
         }
 
@@ -55,8 +59,9 @@ namespace IS4UI.Backend.Api.Pages
         {
             List<EntityDescriptor> entitiesTree = BuildEntityTree();
 
-            //var tree = RenderTree(entitiesTree);
+            // var tree = RenderTree(entitiesTree);
             // Code = tree;
+            // return;
 
             var codeBuilder = new StringBuilder();
 
@@ -65,8 +70,87 @@ namespace IS4UI.Backend.Api.Pages
 
             RenderInputs(entitiesTree, codeBuilder);
 
+            codeBuilder.AppendLine("////////////// INPUT VALIDATORS //////////////");
+            codeBuilder.AppendLine("// Add to Mutation\\Validators folder.\n");
+
+            RenderInputValidators(entitiesTree, codeBuilder);
+
             Code = codeBuilder.ToString();
 
+        }
+
+        private static String RenderInputValidators(List<EntityDescriptor> entitiesTree, StringBuilder codeBuilder = null)
+        {
+            codeBuilder = codeBuilder ?? new StringBuilder();
+            foreach (var entity in entitiesTree)
+            {
+                static String GenerateRules(EntityDescriptor entity, string verb)
+                {
+                    var ignoredBuilder = new StringBuilder();
+                    var rulesBuilder = new StringBuilder();
+                    foreach (var property in entity.Properties)
+                    {
+                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        {
+                            if (property.IsRequired || (property.TypeName == "String" && property.StringLength > 0))
+                            {
+                                rulesBuilder.Append($"      RuleFor(m => m.{property.Name})");
+                                if (property.IsRequired)
+                                    rulesBuilder.Append($".NotEmpty()");
+                                if (property.TypeName == "String" && property.StringLength > 0)
+                                    rulesBuilder.Append($".Length({(property.IsRequired ? "1" : "0")}, {property.StringLength})");
+                                rulesBuilder.AppendLine($";");
+                            }
+                            else
+                            {
+                                ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - not required nor has string length");
+                            }
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        {
+                            rulesBuilder.AppendLine($"      RuleForEach(m => m.{property.Name}).SetValidator(new {verb}{property.GenericTypeName}InputValidator());");
+                        }
+                        else
+                        {
+                            ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
+                        }
+                    }
+
+                    if (ignoredBuilder.Length > 0)
+                    {
+                        rulesBuilder.AppendLine($"   // Ignored: ");
+                        rulesBuilder.Append(ignoredBuilder.ToString());
+                    }
+
+                    return rulesBuilder.ToString();
+                }
+
+
+                // Create
+                codeBuilder.AppendLine($"public class Create{entity.Name}InputValidator : AbstractValidator<Create{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   public Create{entity.Name}InputValidator()");
+                codeBuilder.AppendLine("    {");
+                codeBuilder.Append(GenerateRules(entity, "Create"));
+                codeBuilder.AppendLine("    }\n");
+                codeBuilder.AppendLine("}\n");
+
+                // Update
+                codeBuilder.AppendLine($"public class Update{entity.Name}InputValidator : AbstractValidator<Update{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   public Update{entity.Name}InputValidator()");
+                codeBuilder.AppendLine("    {");
+                codeBuilder.Append(GenerateRules(entity, "Update"));
+                codeBuilder.AppendLine("    }\n");
+                codeBuilder.AppendLine("}\n");
+
+                // Recurse
+                if (entity.Children.Any())
+                {
+                    RenderInputValidators(entity.Children, codeBuilder);
+                }
+            }
+            return codeBuilder.ToString();
         }
 
         private static String RenderInputs(List<EntityDescriptor> entitiesTree, StringBuilder codeBuilder = null)
@@ -139,7 +223,7 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine($"{indentStr}* {entity.Name}:");
                 foreach (var property in entity.Properties)
                 {
-                    codeBuilder.AppendLine($"{indentStr}   .{property.Name} : {property.TypeName} ({property.Classification.ToString()})");
+                    codeBuilder.AppendLine($"{indentStr}   .{property.Name} : {property.TypeName} {(property.StringLength > 0 ? $"({property.StringLength})" : "")} {(property.IsRequired ? "Required" : "")} [{property.Classification.ToString()}]");
                 }
                 if (entity.Children.Any())
                 {
@@ -169,17 +253,21 @@ namespace IS4UI.Backend.Api.Pages
 
                 foreach (var property in properties)
                 {
+                    var type = property.PropertyType;
                     var propertyDescriptor = new PropertyDescriptor()
                     {
-                        Name = property.Name
+                        Name = property.Name,
+                        IsRequired = type.IsPrimitive
                     };
 
-                    var type = property.PropertyType;
                     if (type.Name == "Nullable`1")
                     {
                         var genericType = type?.GetTypeInfo()?.GenericTypeArguments.FirstOrDefault();
                         if (genericType != null)
+                        {
                             propertyDescriptor.TypeName = genericType.Name + "?";
+                            propertyDescriptor.IsRequired = false;
+                        }
                         else
                             throw new Exception($"Failed to get type name for nullable property type: {entityType.Name}.{property.Name}: {type.Name}");
                     }
@@ -187,15 +275,24 @@ namespace IS4UI.Backend.Api.Pages
                     {
                         var genericType = type?.GetTypeInfo()?.GenericTypeArguments.FirstOrDefault();
                         if (genericType != null)
+                        {
                             propertyDescriptor.TypeName = $"List<{genericType.Name}>";
+                            propertyDescriptor.GenericTypeName = genericType.Name;
+                        }
                         else
                             throw new Exception($"Failed to get type name for collection property type: {entityType.Name}.{property.Name}: {type.Name}");
                     }
                     else
                     {
                         propertyDescriptor.TypeName = type.Name;
+                        if (type.Name == "String")
+                        {
+                            var stringLength = property.GetCustomAttribute<StringLengthAttribute>()?.MaximumLength;
+                            propertyDescriptor.StringLength = stringLength ?? 0;
+                            var isRequired = property.GetCustomAttribute<RequiredAttribute>() != null;
+                            propertyDescriptor.IsRequired = isRequired;
+                        }
                     }
-
 
                     if (parentNames.Select(n => n + "Id").Contains(property.Name))
                     {
