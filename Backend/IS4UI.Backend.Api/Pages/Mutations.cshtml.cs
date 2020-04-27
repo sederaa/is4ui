@@ -80,7 +80,70 @@ namespace IS4UI.Backend.Api.Pages
 
             RenderInputValidators(entitiesTree, codeBuilder);
 
+            codeBuilder.AppendLine("////////////// MUTATION SERVICE CLASS //////////////");
+            codeBuilder.AppendLine("// Add to Mutation\\Services folder.\n");
+
+            RenderMutationServiceClass(entitiesTree, codeBuilder);
+
             Code = codeBuilder.ToString();
+
+        }
+
+        private static string RenderMutationServiceClass(List<EntityDescriptor> entitiesTree, StringBuilder codeBuilder = null)
+        {
+            codeBuilder = codeBuilder ?? new StringBuilder();
+            foreach (var entity in entitiesTree)
+            {
+                // Create
+                codeBuilder.AppendLine($"// Filename: {entity.Name}MutationService.cs");
+                codeBuilder.AppendLine($"public partial class Mutation");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   public async Task<{entity.Name}> Create{entity.Name}([Service] ApplicationDbContext db, Create{entity.Name}Input input)");
+                codeBuilder.AppendLine("   {");
+                var entityVariableName = entity.Name.FirstCharacterToLower();
+                codeBuilder.AppendLine($"      var {entityVariableName} = new {entity.Name}");
+                codeBuilder.AppendLine("      {");
+
+                void GenerateEntityProperties(EntityDescriptor entity, string indent)
+                {
+                    foreach (var property in entity.Properties)
+                    {
+                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        {
+                            codeBuilder.AppendLine($"{indent}{property.Name} = input.{property.Name},");
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Created)
+                        {
+                            codeBuilder.AppendLine($"{indent}{property.Name} = DateTime.Now,");
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        {
+                            var childEntity = entity.Children.FirstOrDefault(c => c.Name == property.GenericTypeName);
+                            if (childEntity == null)
+                                throw new Exception($"{entity.Name}: failed to find child entity for property name '{property.GenericTypeName}'.");
+                            codeBuilder.AppendLine($"{indent}{property.Name} = input.{property.Name}.Select(x => new {property.GenericTypeName}()");
+                            codeBuilder.AppendLine($"{indent}{{");
+                            GenerateEntityProperties(childEntity, $"{indent}   ");
+                            codeBuilder.AppendLine($"{indent}}}).ToList(),");
+                        }
+                    }
+                }
+
+                GenerateEntityProperties(entity, "         ");
+
+                codeBuilder.AppendLine("      };");
+                codeBuilder.AppendLine($"      db.{entity.Name}s.Add({entityVariableName});");
+                codeBuilder.AppendLine($"      await db.SaveChangesAsync();");
+                codeBuilder.AppendLine($"      return {entityVariableName};");
+                codeBuilder.AppendLine("   }");
+                codeBuilder.AppendLine("}\n");
+
+                // Update
+
+                // Delete
+            }
+            return codeBuilder.ToString();
+
 
         }
 
