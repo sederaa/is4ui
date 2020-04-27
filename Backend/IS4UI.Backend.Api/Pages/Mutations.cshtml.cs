@@ -70,15 +70,15 @@ namespace IS4UI.Backend.Api.Pages
 
             RenderInputs(entitiesTree, codeBuilder);
 
-            codeBuilder.AppendLine("////////////// INPUT VALIDATORS //////////////");
-            codeBuilder.AppendLine("// Add to Mutation\\Validators folder.\n");
-
-            RenderInputValidators(entitiesTree, codeBuilder);
-
             codeBuilder.AppendLine("////////////// INPUT TYPES //////////////");
             codeBuilder.AppendLine("// Add to Mutation\\InputTypes folder.\n");
 
             RenderInputTypes(entitiesTree, codeBuilder);
+
+            codeBuilder.AppendLine("////////////// INPUT VALIDATORS //////////////");
+            codeBuilder.AppendLine("// Add to Mutation\\Validators folder.\n");
+
+            RenderInputValidators(entitiesTree, codeBuilder);
 
             Code = codeBuilder.ToString();
 
@@ -89,13 +89,13 @@ namespace IS4UI.Backend.Api.Pages
             codeBuilder = codeBuilder ?? new StringBuilder();
             foreach (var entity in entitiesTree)
             {
-                string GenerateProperties(bool includePrimarykey, string createOrUpdate)
+                string GenerateProperties(bool includePrimarykey, bool primarykeyOnly, string operation)
                 {
                     var propertiesBuilder = new StringBuilder();
                     var ignoredBuilder = new StringBuilder();
                     foreach (var property in entity.Properties)
                     {
-                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        if (property.Classification == PropertyDescriptorClassifications.Regular && !primarykeyOnly)
                         {
                             var typeName = property.TypeName.Replace("?", "");
                             if (typeName == "Int32") typeName = "Int";
@@ -104,15 +104,15 @@ namespace IS4UI.Backend.Api.Pages
                                 typeName = $"NonNullType<{typeName}>";
                             propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<{typeName}>();");
                         }
-                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        else if (property.Classification == PropertyDescriptorClassifications.Children && !primarykeyOnly)
                         {
-                            propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<NonNullType<ListType<{createOrUpdate}{property.Name}InputType>>>();");
+                            propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<NonNullType<ListType<{operation}{property.Name}InputType>>>();");
                         }
                         else if (property.Classification == PropertyDescriptorClassifications.Pk && includePrimarykey)
                         {
                             propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<NonNullType<IdType>>();");
                         }
-                        else
+                        else if (!primarykeyOnly)
                         {
                             ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
                         }
@@ -131,7 +131,7 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine($"   protected override void Configure(IInputObjectTypeDescriptor<Create{entity.Name}Input> descriptor)");
                 codeBuilder.AppendLine("   {");
                 codeBuilder.AppendLine("      base.Configure(descriptor);");
-                codeBuilder.Append(GenerateProperties(false, "Create"));
+                codeBuilder.Append(GenerateProperties(false, false, "Create"));
                 codeBuilder.AppendLine("   }");
                 codeBuilder.AppendLine("}\n");
 
@@ -141,15 +141,19 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine($"   protected override void Configure(IInputObjectTypeDescriptor<Update{entity.Name}Input> descriptor)");
                 codeBuilder.AppendLine("   {");
                 codeBuilder.AppendLine("      base.Configure(descriptor);");
-                codeBuilder.Append(GenerateProperties(true, "Update"));
+                codeBuilder.Append(GenerateProperties(true, false, "Update"));
                 codeBuilder.AppendLine("   }");
                 codeBuilder.AppendLine("}\n");
 
-                // TODO: Delete
-                //codeBuilder.AppendLine($"public class Delete{entity.Name}InputType");
-                //codeBuilder.AppendLine("{");
-                //codeBuilder.Append(propertiesBuilder.ToString());
-                //codeBuilder.AppendLine("}\n");
+                // Delete
+                codeBuilder.AppendLine($"public class Delete{entity.Name}InputType : InputObjectType<Delete{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   protected override void Configure(IInputObjectTypeDescriptor<Delete{entity.Name}Input> descriptor)");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.AppendLine("      base.Configure(descriptor);");
+                codeBuilder.Append(GenerateProperties(true, true, "Delete"));
+                codeBuilder.AppendLine("   }");
+                codeBuilder.AppendLine("}\n");
 
                 // Recurse
                 if (entity.Children.Any())
@@ -166,13 +170,13 @@ namespace IS4UI.Backend.Api.Pages
             codeBuilder = codeBuilder ?? new StringBuilder();
             foreach (var entity in entitiesTree)
             {
-                static String GenerateRules(EntityDescriptor entity, string verb)
+                static String GenerateRules(EntityDescriptor entity, string operation, bool includePrimarykey, bool primarykeyOnly)
                 {
                     var ignoredBuilder = new StringBuilder();
                     var rulesBuilder = new StringBuilder();
                     foreach (var property in entity.Properties)
                     {
-                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        if (property.Classification == PropertyDescriptorClassifications.Regular && !primarykeyOnly)
                         {
                             if (property.IsRequired || (property.TypeName == "String" && property.StringLength > 0))
                             {
@@ -188,19 +192,23 @@ namespace IS4UI.Backend.Api.Pages
                                 ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - not required nor has string length");
                             }
                         }
-                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        else if (property.Classification == PropertyDescriptorClassifications.Pk && includePrimarykey)
                         {
-                            rulesBuilder.AppendLine($"      RuleForEach(m => m.{property.Name}).SetValidator(new {verb}{property.GenericTypeName}InputValidator());");
+                            rulesBuilder.AppendLine($"      RuleFor(m => m.{property.Name}).NotEmpty();");
                         }
-                        else
+                        else if (property.Classification == PropertyDescriptorClassifications.Children && !primarykeyOnly)
                         {
-                            ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
+                            rulesBuilder.AppendLine($"      RuleForEach(m => m.{property.Name}).SetValidator(new {operation}{property.GenericTypeName}InputValidator());");
+                        }
+                        else if (!primarykeyOnly)
+                        {
+                            ignoredBuilder.AppendLine($"      // {property.TypeName} {property.Name} - {property.Classification}");
                         }
                     }
 
                     if (ignoredBuilder.Length > 0)
                     {
-                        rulesBuilder.AppendLine($"   // Ignored: ");
+                        rulesBuilder.AppendLine($"      // Ignored: ");
                         rulesBuilder.Append(ignoredBuilder.ToString());
                     }
 
@@ -212,21 +220,28 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine($"public class Create{entity.Name}InputValidator : AbstractValidator<Create{entity.Name}Input>");
                 codeBuilder.AppendLine("{");
                 codeBuilder.AppendLine($"   public Create{entity.Name}InputValidator()");
-                codeBuilder.AppendLine("    {");
-                codeBuilder.Append(GenerateRules(entity, "Create"));
-                codeBuilder.AppendLine("    }\n");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.Append(GenerateRules(entity, "Create", false, false));
+                codeBuilder.AppendLine("   }\n");
                 codeBuilder.AppendLine("}\n");
 
                 // Update
                 codeBuilder.AppendLine($"public class Update{entity.Name}InputValidator : AbstractValidator<Update{entity.Name}Input>");
                 codeBuilder.AppendLine("{");
-                codeBuilder.AppendLine($"   public Update{entity.Name}InputValidator()");
+                codeBuilder.AppendLine($"  public Update{entity.Name}InputValidator()");
                 codeBuilder.AppendLine("    {");
-                codeBuilder.Append(GenerateRules(entity, "Update"));
-                codeBuilder.AppendLine("    }\n");
+                codeBuilder.Append(GenerateRules(entity, "Update", true, false));
+                codeBuilder.AppendLine("   }\n");
                 codeBuilder.AppendLine("}\n");
 
-                // TODO: Delete
+                // Delete
+                codeBuilder.AppendLine($"public class Delete{entity.Name}InputValidator : AbstractValidator<Delete{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   public Delete{entity.Name}InputValidator()");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.Append(GenerateRules(entity, "Delete", true, true));
+                codeBuilder.AppendLine("   }\n");
+                codeBuilder.AppendLine("}\n");
 
                 // Recurse
                 if (entity.Children.Any())
@@ -242,40 +257,54 @@ namespace IS4UI.Backend.Api.Pages
             codeBuilder = codeBuilder ?? new StringBuilder();
             foreach (var entity in entitiesTree)
             {
-                var ignoredBuilder = new StringBuilder();
-                var propertiesBuilder = new StringBuilder();
-                foreach (var property in entity.Properties)
+                string GenerateProperties(bool includePrimarykey, bool primarykeyOnly)
                 {
-                    if (property.Classification == PropertyDescriptorClassifications.Regular
-                        || property.Classification == PropertyDescriptorClassifications.Children)
+                    var ignoredBuilder = new StringBuilder();
+                    var propertiesBuilder = new StringBuilder();
+                    foreach (var property in entity.Properties)
                     {
-                        propertiesBuilder.AppendLine($"   public {property.TypeName} {property.Name} {{ get; set; }}");
+                        if (!primarykeyOnly
+                            && (property.Classification == PropertyDescriptorClassifications.Regular
+                                || property.Classification == PropertyDescriptorClassifications.Children))
+                        {
+                            propertiesBuilder.AppendLine($"   public {property.TypeName} {property.Name} {{ get; set; }}");
+                        }
+                        else if (includePrimarykey && property.Classification == PropertyDescriptorClassifications.Pk)
+                        {
+                            propertiesBuilder.AppendLine($"   public {property.TypeName} {property.Name} {{ get; set; }}");
+                        }
+                        else if (!primarykeyOnly)
+                        {
+                            ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
+                        }
                     }
-                    else
-                    {
-                        ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
-                    }
-                }
 
-                if (ignoredBuilder.Length > 0)
-                {
-                    propertiesBuilder.AppendLine($"   // Ignored: ");
-                    propertiesBuilder.Append(ignoredBuilder.ToString());
+                    if (ignoredBuilder.Length > 0)
+                    {
+                        propertiesBuilder.AppendLine($"   // Ignored: ");
+                        propertiesBuilder.Append(ignoredBuilder.ToString());
+                    }
+
+                    return propertiesBuilder.ToString();
                 }
 
                 // Create
                 codeBuilder.AppendLine($"public class Create{entity.Name}Input");
                 codeBuilder.AppendLine("{");
-                codeBuilder.Append(propertiesBuilder.ToString());
+                codeBuilder.Append(GenerateProperties(false, false));
                 codeBuilder.AppendLine("}\n");
 
                 // Update
                 codeBuilder.AppendLine($"public class Update{entity.Name}Input");
                 codeBuilder.AppendLine("{");
-                codeBuilder.Append(propertiesBuilder.ToString());
+                codeBuilder.Append(GenerateProperties(true, false));
                 codeBuilder.AppendLine("}\n");
 
-                // TODO: Delete
+                // Delete
+                codeBuilder.AppendLine($"public class Delete{entity.Name}Input");
+                codeBuilder.AppendLine("{");
+                codeBuilder.Append(GenerateProperties(true, true));
+                codeBuilder.AppendLine("}\n");
 
                 // Recurse
                 if (entity.Children.Any())
@@ -284,6 +313,8 @@ namespace IS4UI.Backend.Api.Pages
                 }
             }
             return codeBuilder.ToString();
+
+
         }
 
 
