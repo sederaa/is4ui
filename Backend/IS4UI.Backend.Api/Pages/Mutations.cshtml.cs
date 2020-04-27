@@ -138,9 +138,9 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine("   }");
                 codeBuilder.AppendLine("}\n");
 
-                // Update
+                // TODO: Update
 
-                // Delete
+                // TODO: Delete
             }
             return codeBuilder.ToString();
 
