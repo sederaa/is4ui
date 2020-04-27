@@ -75,7 +75,89 @@ namespace IS4UI.Backend.Api.Pages
 
             RenderInputValidators(entitiesTree, codeBuilder);
 
+            codeBuilder.AppendLine("////////////// INPUT TYPES //////////////");
+            codeBuilder.AppendLine("// Add to Mutation\\InputTypes folder.\n");
+
+            RenderInputTypes(entitiesTree, codeBuilder);
+
             Code = codeBuilder.ToString();
+
+        }
+
+        private static String RenderInputTypes(List<EntityDescriptor> entitiesTree, StringBuilder codeBuilder = null)
+        {
+            codeBuilder = codeBuilder ?? new StringBuilder();
+            foreach (var entity in entitiesTree)
+            {
+                string GenerateProperties(bool includePrimarykey, string createOrUpdate)
+                {
+                    var propertiesBuilder = new StringBuilder();
+                    var ignoredBuilder = new StringBuilder();
+                    foreach (var property in entity.Properties)
+                    {
+                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        {
+                            var typeName = property.TypeName.Replace("?", "");
+                            if (typeName == "Int32") typeName = "Int";
+                            typeName = $"{typeName}Type";
+                            if (property.IsRequired)
+                                typeName = $"NonNullType<{typeName}>";
+                            propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<{typeName}>();");
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        {
+                            propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<NonNullType<ListType<{createOrUpdate}{property.Name}InputType>>>();");
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Pk && includePrimarykey)
+                        {
+                            propertiesBuilder.AppendLine($"      descriptor.Field(x => x.{property.Name}).Type<NonNullType<IdType>>();");
+                        }
+                        else
+                        {
+                            ignoredBuilder.AppendLine($"   // {property.TypeName} {property.Name} - {property.Classification}");
+                        }
+                    }
+                    if (ignoredBuilder.Length > 0)
+                    {
+                        propertiesBuilder.AppendLine($"   // Ignored: ");
+                        propertiesBuilder.Append(ignoredBuilder.ToString());
+                    }
+                    return propertiesBuilder.ToString();
+                }
+
+                // Create
+                codeBuilder.AppendLine($"public class Create{entity.Name}InputType : InputObjectType<Create{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   protected override void Configure(IInputObjectTypeDescriptor<Create{entity.Name}Input> descriptor)");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.AppendLine("      base.Configure(descriptor);");
+                codeBuilder.Append(GenerateProperties(false, "Create"));
+                codeBuilder.AppendLine("   }");
+                codeBuilder.AppendLine("}\n");
+
+                // Update
+                codeBuilder.AppendLine($"public class Update{entity.Name}InputType : InputObjectType<Update{entity.Name}Input>");
+                codeBuilder.AppendLine("{");
+                codeBuilder.AppendLine($"   protected override void Configure(IInputObjectTypeDescriptor<Update{entity.Name}Input> descriptor)");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.AppendLine("      base.Configure(descriptor);");
+                codeBuilder.Append(GenerateProperties(true, "Update"));
+                codeBuilder.AppendLine("   }");
+                codeBuilder.AppendLine("}\n");
+
+                // TODO: Delete
+                //codeBuilder.AppendLine($"public class Delete{entity.Name}InputType");
+                //codeBuilder.AppendLine("{");
+                //codeBuilder.Append(propertiesBuilder.ToString());
+                //codeBuilder.AppendLine("}\n");
+
+                // Recurse
+                if (entity.Children.Any())
+                {
+                    RenderInputTypes(entity.Children, codeBuilder);
+                }
+            }
+            return codeBuilder.ToString();
 
         }
 
@@ -144,6 +226,8 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine("    }\n");
                 codeBuilder.AppendLine("}\n");
 
+                // TODO: Delete
+
                 // Recurse
                 if (entity.Children.Any())
                 {
@@ -190,6 +274,8 @@ namespace IS4UI.Backend.Api.Pages
                 codeBuilder.AppendLine("{");
                 codeBuilder.Append(propertiesBuilder.ToString());
                 codeBuilder.AppendLine("}\n");
+
+                // TODO: Delete
 
                 // Recurse
                 if (entity.Children.Any())
