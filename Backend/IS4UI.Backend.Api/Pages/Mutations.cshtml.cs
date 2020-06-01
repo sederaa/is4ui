@@ -94,17 +94,18 @@ namespace IS4UI.Backend.Api.Pages
             codeBuilder = codeBuilder ?? new StringBuilder();
             foreach (var entity in entitiesTree)
             {
-                // Create
                 codeBuilder.AppendLine($"// Filename: {entity.Name}MutationService.cs");
                 codeBuilder.AppendLine($"public partial class Mutation");
                 codeBuilder.AppendLine("{");
+
+                // Create
+                var entityVariableName = entity.Name.FirstCharacterToLower();
                 codeBuilder.AppendLine($"   public async Task<{entity.Name}> Create{entity.Name}([Service] ApplicationDbContext db, Create{entity.Name}Input input)");
                 codeBuilder.AppendLine("   {");
-                var entityVariableName = entity.Name.FirstCharacterToLower();
                 codeBuilder.AppendLine($"      var {entityVariableName} = new {entity.Name}");
                 codeBuilder.AppendLine("      {");
 
-                void GenerateEntityProperties(EntityDescriptor entity, string indent)
+                void GenerateEntityProperties_Create(EntityDescriptor entity, string indent)
                 {
                     foreach (var property in entity.Properties)
                     {
@@ -123,24 +124,82 @@ namespace IS4UI.Backend.Api.Pages
                                 throw new Exception($"{entity.Name}: failed to find child entity for property name '{property.GenericTypeName}'.");
                             codeBuilder.AppendLine($"{indent}{property.Name} = input.{property.Name}.Select(x => new {property.GenericTypeName}()");
                             codeBuilder.AppendLine($"{indent}{{");
-                            GenerateEntityProperties(childEntity, $"{indent}   ");
+                            GenerateEntityProperties_Create(childEntity, $"{indent}   ");
                             codeBuilder.AppendLine($"{indent}}}).ToList(),");
                         }
                     }
                 }
 
-                GenerateEntityProperties(entity, "         ");
+                GenerateEntityProperties_Create(entity, "         ");
 
                 codeBuilder.AppendLine("      };");
                 codeBuilder.AppendLine($"      db.{entity.Name}s.Add({entityVariableName});");
                 codeBuilder.AppendLine($"      await db.SaveChangesAsync();");
                 codeBuilder.AppendLine($"      return {entityVariableName};");
                 codeBuilder.AppendLine("   }");
-                codeBuilder.AppendLine("}\n");
+                codeBuilder.AppendLine("");
 
-                // TODO: Update
+                // Update
+                codeBuilder.AppendLine($"   public async Task<{entity.Name}> Update{entity.Name}([Service] ApplicationDbContext db, Update{entity.Name}Input input)");
+                codeBuilder.AppendLine("   {");
+                codeBuilder.AppendLine($"      var {entityVariableName} = await db.FindAsync<{entity.Name}>(input.Id);");
+
+                void GenerateEntityProperties_Update(EntityDescriptor entity, string indent, string inputName = "input")
+                {
+                    var entityVariableName = entity.Name.FirstCharacterToLower();
+                    foreach (var property in entity.Properties)
+                    {
+                        if (property.Classification == PropertyDescriptorClassifications.Regular)
+                        {
+                            codeBuilder.AppendLine($"{indent}{entityVariableName}.{property.Name} = {inputName}.{property.Name};");
+                        }
+                        else if (property.Classification == PropertyDescriptorClassifications.Children)
+                        {
+                            var childEntity = entity.Children.FirstOrDefault(c => c.Name == property.GenericTypeName);
+                            if (childEntity == null)
+                                throw new Exception($"{entity.Name}: failed to find child entity for property name '{property.GenericTypeName}'.");
+                            var childEntityVariableName = childEntity.Name.FirstCharacterToLower();
+
+                            codeBuilder.AppendLine($"");
+                            codeBuilder.AppendLine($"{indent}// start {property.Name} property");
+                            codeBuilder.AppendLine($"{indent}foreach (var {childEntityVariableName}Input in {inputName}.{property.Name})");
+                            codeBuilder.AppendLine($"{indent}{{");
+                            codeBuilder.AppendLine($"{indent}    var {childEntityVariableName} = await db.FindAsync<{property.GenericTypeName}>({childEntityVariableName}Input.Id)");
+                            codeBuilder.AppendLine($"{indent}                            ?? new {property.GenericTypeName}");
+                            codeBuilder.AppendLine($"{indent}                            {{");
+                            // TODO: child entity properties that should be set only on create, e.g. Created and FK
+                            codeBuilder.AppendLine($"{indent}                                Created = DateTime.Now,");
+                            codeBuilder.AppendLine($"{indent}                                //ClientId = client.Id");
+                            codeBuilder.AppendLine($"{indent}                            }};");
+
+                            GenerateEntityProperties_Update(childEntity, $"{indent}    ", $"{childEntityVariableName}Input");
+
+                            codeBuilder.AppendLine($"{indent}    if ({childEntityVariableName}Entity.Id == 0)");
+                            codeBuilder.AppendLine($"{indent}    {{");
+                            codeBuilder.AppendLine($"{indent}        db.{property.GenericTypeName}s.Add({childEntityVariableName}Entity);");
+                            codeBuilder.AppendLine($"{indent}    }}");
+                            codeBuilder.AppendLine($"{indent}}}");
+                            codeBuilder.AppendLine($"{indent}var {childEntityVariableName}IdsInInput = {inputName}.{property.Name}.Select(x => x.Id).ToArray();");
+                            codeBuilder.AppendLine($"{indent}var {childEntityVariableName}EntitiesToDelete = db.{property.GenericTypeName}s.Where(x => x.ClientId == {entityVariableName}.Id && !{childEntityVariableName}IdsInInput.Contains(x.Id)).ToList();");
+                            codeBuilder.AppendLine($"{indent}db.{property.GenericTypeName}s.RemoveRange({childEntityVariableName}EntitiesToDelete);");
+                            codeBuilder.AppendLine($"{indent}// end {property.Name} property");
+                            codeBuilder.AppendLine($"");
+                        }
+                    }
+                }
+
+                GenerateEntityProperties_Update(entity, "         ");
+
+                codeBuilder.AppendLine($"      await db.SaveChangesAsync();");
+                codeBuilder.AppendLine($"      return {entityVariableName};");
+                codeBuilder.AppendLine("   }");
 
                 // TODO: Delete
+
+
+
+                codeBuilder.AppendLine("}\n");
+
             }
             return codeBuilder.ToString();
 

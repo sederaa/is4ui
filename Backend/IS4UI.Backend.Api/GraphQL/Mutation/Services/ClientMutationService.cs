@@ -62,6 +62,29 @@ public partial class Mutation
         var client = await db.FindAsync<Client>(input.Id);
         client.ClientId = input.ClientId;
         client.ClientName = input.ClientName;
+
+        foreach (var clientSecretInput in input.ClientSecrets)
+        {
+            var clientSecretEntity = await db.FindAsync<ClientSecret>(clientSecretInput.Id)
+                                    ?? new ClientSecret
+                                    {
+                                        Created = DateTime.Now,
+                                        ClientId = client.Id
+                                    };
+            clientSecretEntity.Description = clientSecretInput.Description;
+            clientSecretEntity.Expiration = clientSecretInput.Expiration;
+            clientSecretEntity.Type = clientSecretInput.Type;
+            clientSecretEntity.Value = clientSecretInput.Value;
+            if (clientSecretEntity.Id == 0)
+            {
+                db.ClientSecrets.Add(clientSecretEntity);
+            }
+        }
+
+        var clientSecretIdsInInput = input.ClientSecrets.Select(cs => cs.Id).ToArray();
+        var clientSecretEntitiesToDelete = db.ClientSecrets.Where(cs => cs.ClientId == client.Id && !clientSecretIdsInInput.Contains(cs.Id)).ToList();
+        db.ClientSecrets.RemoveRange(clientSecretEntitiesToDelete);
+
         await db.SaveChangesAsync();
         return client;
     }

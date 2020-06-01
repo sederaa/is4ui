@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 public class UpdateClientInput
 {
     public int Id { get; set; }
@@ -44,4 +47,5 @@ public class UpdateClientInput
     // public int DeviceCodeLifetime { get; set; }
     // public bool NonEditable { get; set; }
 
+    public List<UpdateClientSecretInput> ClientSecrets { get; set; }
 }
